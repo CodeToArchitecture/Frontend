@@ -1,6 +1,5 @@
 import streamlit as st
 
-
 # Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
