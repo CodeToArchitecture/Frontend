@@ -1,8 +1,13 @@
 import requests
+import anthropic
 import streamlit as st
 
 
 node_api_url = "http://localhost:3000/process-repo"
+client = anthropic.Anthropic(
+    # defaults to os.environ.get("ANTHROPIC_API_KEY")
+    api_key="your-api-key",
+)
 
 ####################
 # DOM
