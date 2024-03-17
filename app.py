@@ -30,7 +30,6 @@ if 'chat_history' not in st.session_state:
 # Behaviour
 ####################
 def populate_files(github_url):
-    return
     # Call Node populate_files
     data = {
     "githubUrl": str(github_url)
