@@ -19,10 +19,6 @@ if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 
 
-#####
-def get_bot_response():
-    return "hello engineer"
-
 ####################
 # Behaviour
 ####################
@@ -50,6 +46,10 @@ def get_architecture_diagram():
     # Send context and prompt to get_image 
     return './rick.png'
 
+def get_bot_response():
+    return "hello engineer"
+
+
 
 if submit_repo and repo_link:
     populate_files(repo_link)
@@ -62,14 +62,14 @@ if 'image_path' in st.session_state and st.session_state.image_path:
 # Display chat messages from history on app rerun
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+        st.markdown(message["content"][0]["text"])
 
 # Accept user input
 if prompt := st.chat_input("What is up?"):
     # Add user message to chat history
-    st.session_state.messages.append({"role": "user", "content": prompt})
+    st.session_state.messages.append({"role": "user", "content": [{"type": "text", "text": prompt}]})
     bot_response = get_bot_response()
-    st.session_state.messages.append({"role": "system", "content": bot_response})
+    st.session_state.messages.append({"role": "system", "content": [{"type": "text", "text": bot_response}]})
 
     # Display user message in chat message container
     with st.chat_message("user"):
