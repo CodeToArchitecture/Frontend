@@ -1,0 +1,5 @@
+Now generate XML output for this terraform code. Make sure to close all the XML tags you open:
+
+{ terraform_code }
+
+Only output the XML content, do no output any English.

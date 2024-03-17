@@ -1,0 +1,243 @@
+Your job is to help visualize software architectures defined by Terraform code. You will do this by converting the Terraform code into a draw.io XML file; the draw.io XML has all the information required to generate a flowchart in draw.io.
+
+
+Example 1
+-----------------
+Terraform Code:
+
+main.tf
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
+provider "aws" {
+  region = var.region
+}
+
+data "aws_ami" "ubuntu" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["099720109477"] # Canonical
+}
+
+resource "aws_instance" "ubuntu" {
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = var.instance_type
+
+  tags = {
+    Name = var.instance_name
+  }
+}
+
+outputs.tf
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
+output "instance_ami" {
+  value = aws_instance.ubuntu.ami
+}
+
+output "instance_arn" {
+  value = aws_instance.ubuntu.arn
+}
+
+variables.tf
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
+variable "region" {
+  description = "AWS region"
+  default     = "us-west-1"
+}
+
+variable "instance_type" {
+  description = "Type of EC2 instance to provision"
+  default     = "t2.micro"
+}
+
+variable "instance_name" {
+  description = "EC2 instance name"
+  default     = "Provisioned by Terraform"
+}
+
+versions.tf
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.28.0"
+    }
+
+    random = {
+      source  = "hashicorp/random"
+      version = "3.0.0"
+    }
+  }
+
+  required_version = ">= 0.14.0"
+}
+
+Draw.io XML Output:
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2024-03-17T00:08:55.701Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Config/91.2.2369.16" etag="xl9hkLhMG_GsGmnvX0b1" version="24.0.7">
+  <diagram name="Page-1" id="N24DRFSZ5Lsl6es_FXGU">
+    <mxGraphModel dx="1050" dy="522" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="IuqwMyJZ7nG7O8QP6tzy-3" value="AWS&lt;div&gt;aws&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="280" y="120" width="280" height="320" as="geometry" />
+        </mxCell>
+        <mxCell id="IuqwMyJZ7nG7O8QP6tzy-5" value="us-west-1&lt;div&gt;region&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="320" y="140" width="220" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="IuqwMyJZ7nG7O8QP6tzy-6" value="ubuntu&lt;div&gt;aws_ami&lt;/div&gt;" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="400" y="180" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="IuqwMyJZ7nG7O8QP6tzy-7" value="ubuntu&lt;div&gt;aws_instance&lt;/div&gt;" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="400" y="290" width="80" height="80" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+
+
+Example 2
+------------------
+Terraform Code:
+
+main.tf
+# VPC > User scenario > Scenario 1. Single Public Subnet
+# https://docs.ncloud.com/ko/networking/vpc/vpc_userscenario1.html
+
+provider "ncloud" {
+  support_vpc = true
+  region      = "KR"
+  access_key  = var.access_key
+  secret_key  = var.secret_key
+}
+
+resource "ncloud_login_key" "key_scn_01" {
+  key_name = var.name_scn01
+}
+
+resource "ncloud_vpc" "vpc_scn_01" {
+  name            = var.name_scn01
+  ipv4_cidr_block = "10.0.0.0/16"
+}
+
+resource "ncloud_subnet" "subnet_scn_01" {
+  name           = var.name_scn01
+  vpc_no         = ncloud_vpc.vpc_scn_01.id
+  subnet         = cidrsubnet(ncloud_vpc.vpc_scn_01.ipv4_cidr_block, 8, 1)
+  // 10.0.1.0/24
+  zone           = "KR-2"
+  network_acl_no = ncloud_vpc.vpc_scn_01.default_network_acl_no
+  subnet_type    = "PUBLIC"
+  // PUBLIC(Public) | PRIVATE(Private)
+}
+
+resource "ncloud_server" "server_scn_01" {
+  subnet_no                 = ncloud_subnet.subnet_scn_01.id
+  name                      = var.name_scn01
+  server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+  login_key_name            = ncloud_login_key.key_scn_01.key_name
+}
+
+resource "ncloud_public_ip" "public_ip_scn_01" {
+  server_instance_no = ncloud_server.server_scn_01.id
+  description        = "for ${var.name_scn01}"
+}
+
+locals {
+  scn01_inbound = [
+    [1, "TCP", "0.0.0.0/0", "80", "ALLOW"],
+    [2, "TCP", "0.0.0.0/0", "443", "ALLOW"],
+    [3, "TCP", "${var.client_ip}/32", "22", "ALLOW"],
+    [4, "TCP", "${var.client_ip}/32", "3389", "ALLOW"],
+    [5, "TCP", "0.0.0.0/0", "32768-65535", "ALLOW"],
+    [197, "TCP", "0.0.0.0/0", "1-65535", "DROP"],
+    [198, "UDP", "0.0.0.0/0", "1-65535", "DROP"],
+    [199, "ICMP", "0.0.0.0/0", null, "DROP"],
+  ]
+
+  scn01_outbound = [
+    [1, "TCP", "0.0.0.0/0", "80", "ALLOW"],
+    [2, "TCP", "0.0.0.0/0", "443", "ALLOW"],
+    [3, "TCP", "${var.client_ip}/32", "1000-65535", "ALLOW"],
+    [197, "TCP", "0.0.0.0/0", "1-65535", "DROP"],
+    [198, "UDP", "0.0.0.0/0", "1-65535", "DROP"],
+    [199, "ICMP", "0.0.0.0/0", null, "DROP"]
+  ]
+}
+
+resource "ncloud_network_acl_rule" "network_acl_01_rule" {
+  network_acl_no = ncloud_vpc.vpc_scn_01.default_network_acl_no
+  dynamic "inbound" {
+    for_each = local.scn01_inbound
+    content {
+      priority    = inbound.value[0]
+      protocol    = inbound.value[1]
+      ip_block    = inbound.value[2]
+      port_range  = inbound.value[3]
+      rule_action = inbound.value[4]
+      description = "for ${var.name_scn01}"
+    }
+  }
+
+  dynamic "outbound" {
+    for_each = local.scn01_outbound
+    content {
+      priority    = outbound.value[0]
+      protocol    = outbound.value[1]
+      ip_block    = outbound.value[2]
+      port_range  = outbound.value[3]
+      rule_action = outbound.value[4]
+      description = "for ${var.name_scn01}"
+    }
+  }
+}
+
+Draw.io XML Output:
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2024-03-17T00:45:03.379Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Config/91.2.2369.16" etag="YxoIgZq-FgMHVcFHly7_" version="24.0.7">
+  <diagram name="Page-1" id="N24DRFSZ5Lsl6es_FXGU">
+    <mxGraphModel dx="1050" dy="522" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="IuqwMyJZ7nG7O8QP6tzy-3" value="ncloud&lt;div&gt;ncloud&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="280" y="120" width="440" height="320" as="geometry" />
+        </mxCell>
+        <mxCell id="IuqwMyJZ7nG7O8QP6tzy-5" value="KR&lt;div&gt;region&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="327" y="140" width="380" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="IuqwMyJZ7nG7O8QP6tzy-8" value="vpn_scn_01&lt;div&gt;ncloud_vpc&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="370" y="160" width="320" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="IuqwMyJZ7nG7O8QP6tzy-9" value="subnet_scn_01&lt;div&gt;ncloud_subnet&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="440" y="180" width="230" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="IuqwMyJZ7nG7O8QP6tzy-10" value="&lt;div&gt;server_scn_01&lt;/div&gt;&lt;div&gt;ncloud_server&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="530" y="200" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="IuqwMyJZ7nG7O8QP6tzy-11" value="public_ip_scn_01&#xa;ncloud_public_ip" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="470" y="330" width="120" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
