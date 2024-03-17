@@ -50,7 +50,47 @@ def populate_files(github_url):
 def get_architecture_diagram():
     # Generate prompt from files
     # Send context and prompt to get_image 
-    return './rick.png'
+    system_arch_path = "Frontend/system_prompt_for_architecture_diagram.txt"
+    file = open(system_arch_path, "r")
+    system_architecture = file.read()
+    file.close()
+
+    # reading User Prompt
+    user_arch_path = "Frontend/user_prompt_for_architecture_diagram.txt"
+    file = open(user_arch_path, "r")
+    user_architecture = file.read()
+    file.close()
+
+    # generating messages
+    messages = [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "{}".format(system_architecture)
+                    }
+                ]
+            },
+            {
+            "role": "assistant",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Please provide the terraform information"
+                }
+            ]
+        },
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "{}".format(user_architecture)
+                }
+            ]
+        }
+    ]
 
 def get_bot_response():
     return client.messages.create(
