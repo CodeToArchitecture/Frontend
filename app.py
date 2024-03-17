@@ -20,18 +20,20 @@ if 'chat_history' not in st.session_state:
 ####################
 # Behaviour
 ####################
-if submit_repo and repo_link:
-    populate_files()
-    st.image(get_image())
-
-def populate_file():
+def populate_files():
     # Call Node populate_files
-    raise NotImplementedError
+    pass
 
 def get_architecture_diagram():
     # Generate prompt from files
     # Send context and prompt to get_image 
-    raise NotImplementedError
+    pass
+
+
+if submit_repo and repo_link:
+    populate_files()
+    st.image(get_architecture_diagram())
+
 
 
 
