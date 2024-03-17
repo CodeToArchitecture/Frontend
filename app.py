@@ -23,6 +23,7 @@ if 'chat_history' not in st.session_state:
 # Behaviour
 ####################
 def populate_files(github_url):
+    return
     # Call Node populate_files
     data = {
     "githubUrl": str(github_url)
@@ -43,12 +44,16 @@ def populate_files(github_url):
 def get_architecture_diagram():
     # Generate prompt from files
     # Send context and prompt to get_image 
-    pass
+    return './rick.png'
 
 
 if submit_repo and repo_link:
     populate_files(repo_link)
-    st.image(get_architecture_diagram())
+    st.session_state.image_path = get_architecture_diagram()
+
+
+if 'image_path' in st.session_state and st.session_state.image_path:
+    st.image(st.session_state.image_path)
 
 # Display chat messages from history on app rerun
 for message in st.session_state.messages:
