@@ -2,6 +2,8 @@ import requests
 import streamlit as st
 
 
+node_api_url = "http://localhost:3000/process-repo"
+
 ####################
 # DOM
 ####################
@@ -20,9 +22,23 @@ if 'chat_history' not in st.session_state:
 ####################
 # Behaviour
 ####################
-def populate_files():
+def populate_files(github_url):
     # Call Node populate_files
-    pass
+    data = {
+    "githubUrl": str(github_url)
+    }
+    params = {
+    "downloadAll": "false"  # or "true" if you want to download all files
+    }
+
+    response = requests.post(node_api_url, json=data, params=params)
+
+    # Check if the request was successful
+    if response.status_code == 200:
+        print("Success:", response.json())
+    else:
+        print("Error:", response.status_code, response.json())
+
 
 def get_architecture_diagram():
     # Generate prompt from files
@@ -31,18 +47,8 @@ def get_architecture_diagram():
 
 
 if submit_repo and repo_link:
-    populate_files()
+    populate_files(repo_link)
     st.image(get_architecture_diagram())
-
-
-
-
-
-
-
-
-
-
 
 # Display chat messages from history on app rerun
 for message in st.session_state.messages:
