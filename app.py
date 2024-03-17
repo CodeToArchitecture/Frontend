@@ -19,6 +19,10 @@ if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 
 
+#####
+def get_bot_response():
+    return "hello engineer"
+
 ####################
 # Behaviour
 ####################
@@ -64,6 +68,13 @@ for message in st.session_state.messages:
 if prompt := st.chat_input("What is up?"):
     # Add user message to chat history
     st.session_state.messages.append({"role": "user", "content": prompt})
+    bot_response = get_bot_response()
+    st.session_state.messages.append({"role": "system", "content": bot_response})
+
     # Display user message in chat message container
     with st.chat_message("user"):
         st.markdown(prompt)
+
+    # Display user message in chat message container
+    with st.chat_message("system"):
+        st.markdown(bot_response)
