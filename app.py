@@ -2,8 +2,12 @@ import requests
 import anthropic
 import streamlit as st
 
+base_url = "http://localhost:3000/"
 
-node_api_url = "http://localhost:3000/process-repo"
+node_api_url = base_url+ "process-repo"
+
+image_api_url = base_url + "parse-diagram"
+
 client = anthropic.Anthropic(
     # defaults to os.environ.get("ANTHROPIC_API_KEY")
     api_key="your-api-key",
@@ -48,60 +52,12 @@ def populate_files(github_url):
 
 
 def get_architecture_diagram():
-    # Generate prompt from files
-    # Send context and prompt to get_image 
-    system_arch_path = "Frontend/system_prompt_for_architecture_diagram.txt"
-    file = open(system_arch_path, "r")
-    system_architecture = file.read()
-    file.close()
-
-    # reading User Prompt
-    user_arch_path = "Frontend/user_prompt_for_architecture_diagram.txt"
-    file = open(user_arch_path, "r")
-    user_architecture = file.read()
-    file.close()
-
-    # generating messages
-    messages = [
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": "{}".format(system_architecture)
-                    }
-                ]
-            },
-            {
-            "role": "assistant",
-            "content": [
-                {
-                    "type": "text",
-                    "text": "Please provide the terraform information"
-                }
-            ]
-        },
-        {
-            "role": "user",
-            "content": [
-                {
-                    "type": "text",
-                    "text": "{}".format(user_architecture)
-                }
-            ]
-        }
-    ]
-
-def get_bot_response():
-    return client.messages.create(
-        model="claude-3-opus-20240229",
-        max_tokens=1000,
-        temperature=0,
-        system=system_prompt_for_chat,
-        messages=st.session_state.messages
-    )
-
-
+    response = requests.get(image_api_url)
+    if response.status_code == 200:
+        # Specify the local path where you want to save the image
+        return response.content
+    else:
+        return "Failed to fetch the image from the API."
 
 if submit_repo and repo_link:
     populate_files(repo_link)
