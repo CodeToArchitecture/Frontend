@@ -8,6 +8,8 @@ client = anthropic.Anthropic(
     # defaults to os.environ.get("ANTHROPIC_API_KEY")
     api_key="your-api-key",
 )
+with open('./system_prompt_for_chat.txt', 'r') as file:
+    system_prompt_for_chat = file.read()
 
 ####################
 # DOM
@@ -52,7 +54,13 @@ def get_architecture_diagram():
     return './rick.png'
 
 def get_bot_response():
-    return "hello engineer"
+    return client.messages.create(
+        model="claude-3-opus-20240229",
+        max_tokens=1000,
+        temperature=0,
+        system=system_prompt_for_chat,
+        messages=st.session_state.messages
+    )
 
 
 
